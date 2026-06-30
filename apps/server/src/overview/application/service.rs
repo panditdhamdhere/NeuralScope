@@ -150,10 +150,10 @@ async fn latest_metric(
     )
     .bind(project_id)
     .bind(name)
-    .fetch_one(pool)
+    .fetch_optional(pool)
     .await?;
 
-    Ok(value)
+    Ok(value.flatten())
 }
 
 #[derive(sqlx::FromRow)]
