@@ -36,7 +36,7 @@ jobs:
           echo "web_latest=${{ env.REGISTRY }}/${{ github.repository }}/web:main" >> "$GITHUB_OUTPUT"
 
       - name: Build and push server
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: infra/docker/Dockerfile.server
@@ -55,7 +55,7 @@ jobs:
           echo "app_url=${{ vars.NEXT_PUBLIC_APP_URL != '' && vars.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push web
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: infra/docker/Dockerfile.web
