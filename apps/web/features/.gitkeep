@@ -1,0 +1,4 @@
+// Feature modules — each directory contains components, hooks, and services
+// for a specific domain (logs, metrics, chat, etc.).
+
+export {};

@@ -1,0 +1,3 @@
+// TanStack Query service layer for API communication.
+
+export {};

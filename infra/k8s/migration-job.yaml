@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neuralscope-migrate
+  namespace: neuralscope
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: neuralscope/server:latest
+          imagePullPolicy: IfNotPresent
+          args: ["--migrate-only"]
+          envFrom:
+            - configMapRef:
+                name: neuralscope-config
+            - secretRef:
+                name: neuralscope-secrets
+          env:
+            - name: RUN_MIGRATIONS
+              value: "true"

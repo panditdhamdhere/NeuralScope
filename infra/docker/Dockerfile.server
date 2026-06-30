@@ -1,0 +1,34 @@
+FROM rust:1.88-bookworm AS builder
+
+WORKDIR /app
+
+# Dependency cache layer
+COPY apps/server/Cargo.toml apps/server/Cargo.lock ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs \
+    && cargo build --release \
+    && rm -rf src target/release/deps/neuralscope_server*
+
+COPY apps/server/src ./src
+COPY apps/server/migrations ./migrations
+
+RUN cargo build --release
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --create-home appuser
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/neuralscope-server /usr/local/bin/neuralscope-server
+COPY --from=builder /app/migrations /app/migrations
+
+USER appuser
+
+EXPOSE 8080
+
+ENV RUN_MIGRATIONS=true
+
+CMD ["neuralscope-server"]

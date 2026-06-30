@@ -1,0 +1,31 @@
+{
+  "name": "neuralscope",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An AI-powered developer observability platform built with Rust",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@neuralscope/web",
+    "dev:web": "npm run dev --workspace=@neuralscope/web",
+    "dev:server": "cargo run --manifest-path apps/server/Cargo.toml",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "cargo test --manifest-path apps/server/Cargo.toml",
+    "ci": "npm run typecheck && npm run lint && npm run test",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

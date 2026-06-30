@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: neuralscope
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - migration-job.yaml
+  - server-deployment.yaml
+  - server-service.yaml
+  - web-deployment.yaml
+  - web-service.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: neuralscope
+  app.kubernetes.io/managed-by: kustomize
+
+# Create secrets before apply:
+#   cp infra/k8s/secret.yaml.example infra/k8s/secret.yaml
+#   kubectl apply -f infra/k8s/secret.yaml
