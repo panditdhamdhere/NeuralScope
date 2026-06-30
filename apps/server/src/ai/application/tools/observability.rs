@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::ai::application::tools::{AiTool, ToolError};
+use crate::ai::application::tools::{limit_param_schema, parse_limit, AiTool, ToolError};
 use crate::logs::application::LogService;
 use crate::logs::domain::{LogLevel, LogSearchQuery};
 use crate::metrics::application::MetricService;
@@ -42,7 +42,7 @@ impl AiTool for SearchLogsTool {
                 "level": { "type": "string", "enum": ["trace","debug","info","warn","error","fatal"], "description": "Filter by log level" },
                 "service": { "type": "string", "description": "Filter by service name" },
                 "trace_id": { "type": "string", "description": "Filter by trace ID" },
-                "limit": { "type": "integer", "description": "Max results (default 20)" }
+                "limit": limit_param_schema(20, "Max results")
             }
         })
     }
@@ -69,7 +69,7 @@ impl AiTool for SearchLogsTool {
                 .get("trace_id")
                 .and_then(|v| v.as_str())
                 .map(str::to_string),
-            limit: args.get("limit").and_then(|v| v.as_i64()).unwrap_or(20),
+            limit: parse_limit(&args, 20, 1, 100),
             offset: 0,
         };
 
@@ -110,7 +110,7 @@ impl AiTool for SearchMetricsTool {
             "type": "object",
             "properties": {
                 "name": { "type": "string", "description": "Metric name (e.g. cpu.usage, http.latency)" },
-                "limit": { "type": "integer", "description": "Max data points (default 50)" }
+                "limit": limit_param_schema(50, "Max data points")
             }
         })
     }
@@ -137,7 +137,7 @@ impl AiTool for SearchMetricsTool {
             name,
             since: None,
             until: None,
-            limit: args.get("limit").and_then(|v| v.as_i64()).unwrap_or(50),
+            limit: parse_limit(&args, 50, 1, 500),
         };
 
         let points = service
@@ -179,7 +179,7 @@ impl AiTool for SearchTracesTool {
                 "service": { "type": "string", "description": "Filter by root service name" },
                 "status": { "type": "string", "enum": ["ok", "error"], "description": "Filter by trace status" },
                 "trace_id": { "type": "string", "description": "Get full trace detail by ID" },
-                "limit": { "type": "integer", "description": "Max results (default 10)" }
+                "limit": limit_param_schema(10, "Max results")
             }
         })
     }
@@ -211,7 +211,7 @@ impl AiTool for SearchTracesTool {
                 .map(str::to_string),
             status,
             since: None,
-            limit: args.get("limit").and_then(|v| v.as_i64()).unwrap_or(10),
+            limit: parse_limit(&args, 10, 1, 100),
             offset: 0,
         };
 
@@ -254,17 +254,13 @@ impl AiTool for SearchDeploymentsTool {
                 "search": { "type": "string", "description": "Search commit messages or authors" },
                 "environment": { "type": "string", "description": "Filter deployments by environment" },
                 "branch": { "type": "string", "description": "Filter commits by branch" },
-                "limit": { "type": "integer", "description": "Max results per section (default 10)" }
+                "limit": limit_param_schema(10, "Max results per section")
             }
         })
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args
-            .get("limit")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(10)
-            .clamp(1, 50);
+        let limit = parse_limit(&args, 10, 1, 50);
         let environment = args.get("environment").and_then(|v| v.as_str());
         let branch = args.get("branch").and_then(|v| v.as_str());
         let search = args.get("search").and_then(|v| v.as_str());
@@ -360,17 +356,13 @@ impl AiTool for SearchNetworkTool {
             "properties": {
                 "source": { "type": "string", "description": "Filter by source service name" },
                 "destination": { "type": "string", "description": "Filter by destination service name" },
-                "limit": { "type": "integer", "description": "Max results (default 20)" }
+                "limit": limit_param_schema(20, "Max results")
             }
         })
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args
-            .get("limit")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(20)
-            .clamp(1, 100);
+        let limit = parse_limit(&args, 20, 1, 100);
 
         let rows = sqlx::query_as::<_, NetworkRow>(
             r#"
@@ -535,17 +527,13 @@ impl AiTool for SearchSecurityTool {
             "type": "object",
             "properties": {
                 "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
-                "limit": { "type": "integer", "description": "Max results (default 20)" }
+                "limit": limit_param_schema(20, "Max results")
             }
         })
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args
-            .get("limit")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(20)
-            .clamp(1, 100);
+        let limit = parse_limit(&args, 20, 1, 100);
         let severity = args
             .get("severity")
             .and_then(|v| v.as_str())
@@ -600,17 +588,13 @@ impl AiTool for SearchIncidentsTool {
             "type": "object",
             "properties": {
                 "status": { "type": "string", "enum": ["open", "investigating", "resolved"] },
-                "limit": { "type": "integer", "description": "Max results (default 10)" }
+                "limit": limit_param_schema(10, "Max results")
             }
         })
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args
-            .get("limit")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(10)
-            .clamp(1, 50);
+        let limit = parse_limit(&args, 10, 1, 50);
         let status = args
             .get("status")
             .and_then(|v| v.as_str())

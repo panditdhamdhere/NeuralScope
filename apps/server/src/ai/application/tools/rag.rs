@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::ai::application::tools::{AiTool, ToolError};
+use crate::ai::application::tools::{limit_param_schema, parse_limit_u32, AiTool, ToolError};
 use crate::vector::application::{SearchVectorRequest, VectorService};
 
 /// Semantic search over indexed source code.
@@ -35,7 +35,7 @@ impl AiTool for SearchCodebaseTool {
             "type": "object",
             "properties": {
                 "query": { "type": "string", "description": "Natural language search query" },
-                "limit": { "type": "integer", "description": "Max results (default 5)" }
+                "limit": limit_param_schema(5, "Max results")
             },
             "required": ["query"]
         })
@@ -47,7 +47,7 @@ impl AiTool for SearchCodebaseTool {
             .and_then(|v| v.as_str())
             .ok_or_else(|| ToolError::InvalidArguments("query is required".into()))?;
 
-        let limit = args.get("limit").and_then(|v| v.as_u64()).map(|v| v as u32);
+        let limit = Some(parse_limit_u32(&args, 5, 1, 20));
 
         let results = self
             .vector
@@ -94,7 +94,7 @@ impl AiTool for SearchDocsTool {
             "type": "object",
             "properties": {
                 "query": { "type": "string", "description": "Natural language search query" },
-                "limit": { "type": "integer", "description": "Max results (default 5)" }
+                "limit": limit_param_schema(5, "Max results")
             },
             "required": ["query"]
         })
@@ -106,7 +106,7 @@ impl AiTool for SearchDocsTool {
             .and_then(|v| v.as_str())
             .ok_or_else(|| ToolError::InvalidArguments("query is required".into()))?;
 
-        let limit = args.get("limit").and_then(|v| v.as_u64()).map(|v| v as u32);
+        let limit = Some(parse_limit_u32(&args, 5, 1, 20));
 
         let results = self
             .vector

@@ -19,6 +19,34 @@ pub use observability::{
 };
 pub use rag::{SearchCodebaseTool, SearchDocsTool};
 
+/// JSON Schema for `limit` — Groq models often emit numeric limits as strings.
+#[must_use]
+pub fn limit_param_schema(default: i64, description: &str) -> Value {
+    json!({
+        "type": "string",
+        "description": format!("{description} (default {default})")
+    })
+}
+
+/// Parses a limit from JSON number or string (Groq-compatible).
+#[must_use]
+pub fn parse_limit(args: &Value, default: i64, min: i64, max: i64) -> i64 {
+    let raw = args.get("limit");
+    let parsed = match raw {
+        None | Some(Value::Null) => default,
+        Some(Value::Number(n)) => n.as_i64().unwrap_or(default),
+        Some(Value::String(s)) => s.trim().parse().unwrap_or(default),
+        _ => default,
+    };
+    parsed.clamp(min, max)
+}
+
+/// Parses an optional u32 limit for vector search.
+#[must_use]
+pub fn parse_limit_u32(args: &Value, default: u32, min: u32, max: u32) -> u32 {
+    parse_limit(args, i64::from(default), i64::from(min), i64::from(max)) as u32
+}
+
 /// Errors during tool execution.
 #[derive(Debug, thiserror::Error)]
 pub enum ToolError {
@@ -107,6 +135,18 @@ impl ToolRegistry {
     #[must_use]
     pub fn tool_names(&self) -> Vec<&str> {
         self.tools.iter().map(|t| t.name()).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_limit_accepts_string_and_number() {
+        assert_eq!(parse_limit(&json!({ "limit": "10" }), 20, 1, 100), 10);
+        assert_eq!(parse_limit(&json!({ "limit": 7 }), 20, 1, 100), 7);
+        assert_eq!(parse_limit(&json!({}), 20, 1, 100), 20);
     }
 }
 
