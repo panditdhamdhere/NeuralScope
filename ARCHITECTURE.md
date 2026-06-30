@@ -312,7 +312,7 @@ flowchart TB
 | Infrastructure | Integration tests with testcontainers |
 | API | HTTP tests with `axum-test` |
 | Frontend | Vitest + React Testing Library |
-| E2E | Playwright (future milestone) |
+| E2E | Playwright smoke tests in CI (`npm run test:e2e`) |
 
 ## Incremental Build Plan
 
@@ -332,7 +332,7 @@ flowchart TB
 | **M12** ✅ | RAG pipeline + Qdrant vector indexing and semantic search |
 | **M13** ✅ | Git commit history, deployment ingest, and correlation UI |
 | **M14** ✅ | MCP stdio server exposing observability tools |
-| **M15** | E2E tests in CI |
+| **M15** ✅ | Playwright E2E smoke tests in CI |
 
 ## MCP Integration
 

@@ -16,12 +16,15 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "cargo test --manifest-path apps/server/Cargo.toml",
     "ci": "npm run typecheck && npm run lint && npm run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3"
   },

@@ -188,7 +188,14 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ### CI
 
-GitHub Actions runs Rust tests (with PostgreSQL + Redis), frontend typecheck/lint/build, and Docker image builds on every PR. Pushes to `main` and version tags trigger CD to publish container images to GHCR.
+GitHub Actions runs Rust tests (with PostgreSQL + Redis + Qdrant), frontend typecheck/lint/build, Docker image builds, and Playwright E2E smoke tests on every PR. Pushes to `main` trigger CD to publish container images to GHCR.
+
+Run E2E tests locally (requires stack running on :3000 and :8080):
+
+```bash
+docker compose up -d
+npm run test:e2e
+```
 
 Run integration tests against live infrastructure:
 
