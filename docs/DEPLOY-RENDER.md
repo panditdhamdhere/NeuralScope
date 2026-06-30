@@ -1,44 +1,48 @@
-# Deploy NeuralScope on Render
+# Deploy NeuralScope on Render (free tier)
 
-This guide deploys the full stack to [Render](https://render.com) using the included `render.yaml` blueprint. No custom domain required — Render gives you HTTPS URLs like:
+Deploy the full stack to [Render](https://render.com) using the included `render.yaml` blueprint. **No credit card required.**
+
+Default URLs (no custom domain):
 
 - **Web:** `https://neuralscope-web.onrender.com`
 - **API:** `https://neuralscope-api.onrender.com`
 
 ## What gets deployed
 
-| Render resource | Purpose |
-|-----------------|---------|
-| PostgreSQL (`neuralscope-db`) | App database |
-| Key Value (`neuralscope-redis`) | Redis cache / pubsub |
-| Web service (`neuralscope-api`) | Rust API server |
-| Web service (`neuralscope-web`) | Next.js dashboard |
+| Render resource | Plan | Purpose |
+|-----------------|------|---------|
+| PostgreSQL (`neuralscope-db`) | Free | App database |
+| Key Value (`neuralscope-redis`) | Free | Redis cache / pubsub |
+| Web service (`neuralscope-api`) | Free | Rust API server |
+| Web service (`neuralscope-web`) | Free | Next.js dashboard |
+
+**Total cost: $0/month** (with the limitations below).
 
 Optional later: [Qdrant Cloud](https://cloud.qdrant.io) free tier for vector/RAG search.
 
-## Cost estimate
+---
 
-| Plan | Approx. cost |
-|------|----------------|
-| Postgres Basic | ~$6/mo |
-| Redis Free | $0 |
-| API Starter | ~$7/mo |
-| Web Starter | ~$7/mo |
-| **Total** | **~$20/mo** |
+## Free tier limits (read this first)
 
-Free tiers exist but services **spin down after inactivity** (slow cold starts). Use Starter for production.
+| Limit | What it means |
+|-------|----------------|
+| **Sleep after 15 min idle** | API and web spin down with no traffic. First request after sleep takes **30–60 seconds** (cold start). |
+| **750 instance hours/month** | Shared across **all** free web services in your workspace. Two services (API + web) ≈ **~375 hours each** if both run equally — not enough for both 24/7 all month. Fine for demos and testing. |
+| **Postgres expires in 30 days** | Render free Postgres is deleted after 30 days unless you upgrade. See [longer-lived free DB](#optional-neon-for-a-longer-lived-free-database) below. |
+| **No Shell / SSH** | You cannot run one-off commands on free web services. Migrations run automatically on API startup (`RUN_MIGRATIONS=true`). |
+| **500 build minutes/month** | First Docker builds can take 10–15 min each. |
+
+For always-on production, upgrade services in the Render dashboard (Postgres ~$6/mo, each web service ~$7/mo).
 
 ---
 
 ## Step 1 — Push latest code to GitHub
 
-Ensure your repo is up to date:
-
 ```bash
 git push origin main
 ```
 
-Set GitHub Actions variables (Settings → Secrets and variables → Actions → **Variables**) so CD builds web with correct URLs when you use GHCR later:
+Optional GitHub Actions variables (Settings → Secrets and variables → Actions → **Variables**) for GHCR CD:
 
 | Variable | Value |
 |----------|--------|
@@ -46,23 +50,34 @@ Set GitHub Actions variables (Settings → Secrets and variables → Actions →
 | `NEXT_PUBLIC_WS_URL` | `wss://neuralscope-api.onrender.com/ws` |
 | `NEXT_PUBLIC_APP_URL` | `https://neuralscope-web.onrender.com` |
 
+Render sets these in `render.yaml` for Docker builds — GitHub vars are only needed if you use the separate GHCR pipeline.
+
 ---
 
-## Step 2 — Create Render account and connect GitHub
+## Step 2 — Create Render account and apply blueprint
 
-1. Go to [render.com](https://render.com) and sign up (GitHub login works).
+1. Go to [render.com](https://render.com) and sign up with GitHub.
 2. Click **New +** → **Blueprint**.
-3. Connect your GitHub account and select **`panditdhamdhere/NeuralScope`**.
+3. Connect GitHub and select **`panditdhamdhere/NeuralScope`**.
 4. Render detects `render.yaml` at the repo root.
-5. Review the services and click **Apply**.
+5. Review services (all should show **Free** plan) and click **Apply**.
 
-Render creates Postgres, Redis, API, and Web services automatically.
+First deploy takes **10–20 minutes** (Docker builds for Rust + Next.js).
 
 ---
 
-## Step 3 — Set optional secrets in Render dashboard
+## Step 3 — Wait for cold starts
 
-After the blueprint is applied, open each service and add env vars if needed:
+Free services sleep when idle. After deploy:
+
+1. Open `https://neuralscope-api.onrender.com/health` — wait up to ~60s on first load.
+2. Then open `https://neuralscope-web.onrender.com` — another cold start possible.
+
+Migrations run automatically when the API starts (`RUN_MIGRATIONS=true`). No Shell step needed on free tier.
+
+---
+
+## Step 4 — Set optional secrets
 
 ### `neuralscope-api` service
 
@@ -75,29 +90,11 @@ After the blueprint is applied, open each service and add env vars if needed:
 
 ### `neuralscope-web` service
 
-No extra secrets needed — it inherits `BETTER_AUTH_SECRET` from the API service.
-
----
-
-## Step 4 — Run database migrations (one time)
-
-After `neuralscope-api` is **Live**:
-
-1. Open the **neuralscope-api** service in Render.
-2. Go to **Shell** tab.
-3. Run:
-
-```bash
-neuralscope-server --migrate-only
-```
-
-You should see migration output with no errors.
+Inherits `BETTER_AUTH_SECRET` from the API service — no extra secrets required.
 
 ---
 
 ## Step 5 — Verify deployment
-
-Open these URLs:
 
 | Check | URL |
 |-------|-----|
@@ -108,13 +105,28 @@ Open these URLs:
 
 Create an account on the web URL, then create a project on the Overview page.
 
+**Tip:** If signup fails, wait for both services to finish waking up — the web app calls the API, which may still be cold.
+
 ---
 
 ## Step 6 — Enable AI chat (optional)
 
 1. Get a key from [Google AI Studio](https://aistudio.google.com/apikey).
-2. In Render → **neuralscope-api** → **Environment** → add `GEMINI_API_KEY`.
-3. Click **Manual Deploy** → **Deploy latest commit**.
+2. Render → **neuralscope-api** → **Environment** → add `GEMINI_API_KEY`.
+3. **Manual Deploy** → **Deploy latest commit**.
+
+---
+
+## Optional: Neon for a longer-lived free database
+
+Render free Postgres **expires after 30 days**. For a demo that lasts longer without paying:
+
+1. Create a free project at [neon.tech](https://neon.tech).
+2. Copy the Postgres connection string.
+3. In Render, set `DATABASE_URL` on **both** `neuralscope-api` and `neuralscope-web` to the Neon URL (overrides the blueprint link).
+4. Redeploy both services.
+
+Neon free tier: 0.5 GB storage, no 30-day expiry (subject to Neon’s current terms).
 
 ---
 
@@ -126,7 +138,7 @@ Browser
    ▼
 neuralscope-web.onrender.com  (Next.js + Better Auth)
    │
-   ├── Postgres (neuralscope-db)
+   ├── Postgres (neuralscope-db or Neon)
    │
    └── neuralscope-api.onrender.com  (Rust API)
            ├── Postgres
@@ -134,31 +146,29 @@ neuralscope-web.onrender.com  (Next.js + Better Auth)
            └── Qdrant Cloud (optional)
 ```
 
-The web app calls the API at `NEXT_PUBLIC_API_URL` (baked in at Docker build time).
-
 ---
 
 ## Redeploy after code changes
 
-Push to `main` on GitHub — Render auto-deploys if **Auto-Deploy** is enabled (default).
-
-Manual redeploy: Render dashboard → service → **Manual Deploy**.
+Push to `main` — Render auto-deploys (default). Manual: dashboard → service → **Manual Deploy**.
 
 ---
 
-## Add a custom domain later
+## Upgrade to paid (when ready)
 
-1. Render → **neuralscope-web** → **Settings** → **Custom Domains** → add `app.yourdomain.com`.
-2. Update DNS CNAME to Render's target.
-3. Update env vars on **both** services:
+In Render dashboard → each service → **Settings** → **Instance Type**:
 
-| Variable | New value |
-|----------|-----------|
-| `BETTER_AUTH_URL` | `https://app.yourdomain.com` |
-| `NEXT_PUBLIC_APP_URL` | `https://app.yourdomain.com` |
-| `CORS_ALLOWED_ORIGINS` | `https://app.yourdomain.com` |
+| Service | Recommended paid plan |
+|---------|----------------------|
+| `neuralscope-db` | Basic ($6/mo) — persistent DB, backups |
+| `neuralscope-api` | Starter ($7/mo) — always on, Shell access |
+| `neuralscope-web` | Starter ($7/mo) — always on |
 
-4. Point API at a subdomain (e.g. `api.yourdomain.com`) or use path routing — update `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` on web, then **rebuild** the web service.
+After upgrading the API, set `RUN_MIGRATIONS=false` and run migrations once via Shell:
+
+```bash
+neuralscope-server --migrate-only
+```
 
 ---
 
@@ -166,15 +176,17 @@ Manual redeploy: Render dashboard → service → **Manual Deploy**.
 
 | Problem | Fix |
 |---------|-----|
+| Page loads forever | Free cold start — wait 30–60s, refresh |
 | Web shows wrong API URL | Rebuild `neuralscope-web` after fixing `NEXT_PUBLIC_*` env vars |
-| 502 on API | Check Shell logs; ensure migrations ran |
-| Signup fails | Verify `DATABASE_URL` on web service; check Postgres is linked |
+| 502 on API | Check **Logs** tab; ensure Postgres/Redis are linked |
+| Signup fails | Both services must be awake; check API logs and `DATABASE_URL` on web |
 | CORS errors | `CORS_ALLOWED_ORIGINS` on API must match web URL exactly |
-| Cold start slow | Upgrade from Free to Starter plan |
+| Services suspended | 750 free hours used for the month — wait until next month or upgrade |
 | AI chat disabled | Set `GEMINI_API_KEY` on API service |
+| Database gone after 30 days | Upgrade Render Postgres or switch to Neon |
 
 ---
 
 ## Rollback
 
-Render dashboard → service → **Deploys** → select previous deploy → **Rollback**.
+Render dashboard → service → **Deploys** → previous deploy → **Rollback**.

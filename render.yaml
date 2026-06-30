@@ -1,13 +1,17 @@
-# NeuralScope — Render Blueprint
+# NeuralScope — Render Blueprint (free tier)
 # Docs: docs/DEPLOY-RENDER.md
 #
 # Deploy: Render Dashboard → New → Blueprint → connect GitHub repo
+#
+# Free limits: services sleep after 15 min idle (~30–60s cold start),
+# Postgres expires after 30 days, 750 instance hours/month shared across
+# free web services. Upgrade plans in the Render dashboard for production.
 
 databases:
   - name: neuralscope-db
     databaseName: neuralscope
     user: neuralscope
-    plan: basic-256mb
+    plan: free
     region: oregon
 
 services:
@@ -22,7 +26,7 @@ services:
   - type: web
     name: neuralscope-api
     runtime: docker
-    plan: starter
+    plan: free
     region: oregon
     dockerfilePath: ./infra/docker/Dockerfile.server
     dockerContext: .
@@ -40,7 +44,7 @@ services:
       - key: APP_ENV
         value: production
       - key: RUN_MIGRATIONS
-        value: "false"
+        value: "true"
       - key: SERVER_HOST
         value: 0.0.0.0
       - key: CORS_ALLOWED_ORIGINS
@@ -58,7 +62,7 @@ services:
   - type: web
     name: neuralscope-web
     runtime: docker
-    plan: starter
+    plan: free
     region: oregon
     dockerfilePath: ./infra/docker/Dockerfile.web
     dockerContext: .

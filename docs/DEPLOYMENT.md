@@ -18,7 +18,7 @@ Before going live, verify every item:
 
 ## Render (recommended for first deploy)
 
-See [docs/DEPLOY-RENDER.md](./DEPLOY-RENDER.md) for step-by-step deployment to Render with the included `render.yaml` blueprint.
+See [docs/DEPLOY-RENDER.md](./DEPLOY-RENDER.md) for step-by-step deployment to Render with the included `render.yaml` blueprint (free tier by default).
 
 ## Docker Compose (single host)
 
