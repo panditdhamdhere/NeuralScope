@@ -10,7 +10,9 @@ use crate::api::state::AppState;
 use crate::auth::application::{ensure_project_member, ensure_project_writer};
 use crate::auth::presentation::AuthUser;
 use crate::network::application::NetworkService;
-use crate::network::domain::{GraphResponse, IngestNetworkEventRequest, NetworkEvent, NetworkEventQuery};
+use crate::network::domain::{
+    GraphResponse, IngestNetworkEventRequest, NetworkEvent, NetworkEventQuery,
+};
 use crate::AppError;
 
 #[derive(Serialize)]
@@ -54,7 +56,13 @@ pub async fn ingest_network_events_batch(
         .await?;
 
     let total = events.len();
-    Ok((StatusCode::CREATED, Json(ListResponse { data: events, meta: ListMeta { total } })))
+    Ok((
+        StatusCode::CREATED,
+        Json(ListResponse {
+            data: events,
+            meta: ListMeta { total },
+        }),
+    ))
 }
 
 /// `GET /api/v1/projects/:project_id/network/events`
@@ -71,7 +79,10 @@ pub async fn query_network_events(
         .await?;
     let total = events.len();
 
-    Ok(Json(ListResponse { data: events, meta: ListMeta { total } }))
+    Ok(Json(ListResponse {
+        data: events,
+        meta: ListMeta { total },
+    }))
 }
 
 /// `GET /api/v1/projects/:project_id/network/graph`

@@ -68,13 +68,11 @@ impl<'a> TraceService<'a> {
         .fetch_one(&mut *tx)
         .await?;
 
-        sqlx::query(
-            "DELETE FROM spans WHERE project_id = $1 AND trace_id = $2",
-        )
-        .bind(project_id)
-        .bind(&request.trace_id)
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query("DELETE FROM spans WHERE project_id = $1 AND trace_id = $2")
+            .bind(project_id)
+            .bind(&request.trace_id)
+            .execute(&mut *tx)
+            .await?;
 
         let mut spans = Vec::with_capacity(request.spans.len());
 
@@ -98,11 +96,7 @@ impl<'a> TraceService<'a> {
     }
 
     /// Lists traces for a project with optional filters.
-    pub async fn list(
-        &self,
-        project_id: Uuid,
-        query: TraceQuery,
-    ) -> Result<Vec<Trace>, AppError> {
+    pub async fn list(&self, project_id: Uuid, query: TraceQuery) -> Result<Vec<Trace>, AppError> {
         let limit = query.limit.clamp(1, 200);
         let offset = query.offset.max(0);
         let status = query.status.map(|s| s.as_str().to_string());
@@ -231,7 +225,9 @@ fn validate_span(span: &IngestSpanRequest) -> Result<(), AppError> {
         return Err(AppError::Validation("operation is required".into()));
     }
     if !span.duration_ms.is_finite() || span.duration_ms < 0.0 {
-        return Err(AppError::Validation("duration_ms must be non-negative".into()));
+        return Err(AppError::Validation(
+            "duration_ms must be non-negative".into(),
+        ));
     }
     Ok(())
 }

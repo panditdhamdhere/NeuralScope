@@ -222,7 +222,10 @@ async fn gather_context(pool: &PgPool, project_id: Uuid) -> Result<IncidentConte
     .fetch_all(pool)
     .await?;
 
-    let error_count = logs.iter().filter(|l| l.level == "error" || l.level == "fatal").count();
+    let error_count = logs
+        .iter()
+        .filter(|l| l.level == "error" || l.level == "fatal")
+        .count();
     if error_count > 0 {
         severity = severity.max(IncidentSeverity::High);
     }
@@ -287,10 +290,7 @@ async fn gather_context(pool: &PgPool, project_id: Uuid) -> Result<IncidentConte
     .fetch_all(pool)
     .await?;
 
-    let critical_findings = findings
-        .iter()
-        .filter(|f| f.severity == "critical")
-        .count();
+    let critical_findings = findings.iter().filter(|f| f.severity == "critical").count();
     if critical_findings > 0 {
         severity = IncidentSeverity::Critical;
     } else if !findings.is_empty() {
@@ -353,7 +353,8 @@ fn build_suggested_fixes(context: &IncidentContext) -> Vec<String> {
     let mut fixes = Vec::new();
 
     if context.critical_findings > 0 {
-        fixes.push("Rotate exposed credentials and remove secrets from configuration files.".into());
+        fixes
+            .push("Rotate exposed credentials and remove secrets from configuration files.".into());
         fixes.push("Run a full security scan and verify no secrets are committed to git.".into());
     }
     if context.failed_traces > 0 {

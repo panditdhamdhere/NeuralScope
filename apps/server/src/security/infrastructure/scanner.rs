@@ -126,8 +126,10 @@ fn rules() -> Vec<ScanRule> {
         },
         ScanRule {
             name: "Generic API key",
-            pattern: Regex::new(r"(?i)(api[_-]?key|secret[_-]?key)\s*[:=]\s*['\x22]?[A-Za-z0-9_\-]{16,}")
-                .expect("regex"),
+            pattern: Regex::new(
+                r"(?i)(api[_-]?key|secret[_-]?key)\s*[:=]\s*['\x22]?[A-Za-z0-9_\-]{16,}",
+            )
+            .expect("regex"),
             finding_type: FindingType::ApiKey,
             severity: Severity::High,
             title: "Hardcoded API key",

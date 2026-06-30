@@ -57,9 +57,18 @@ impl AiTool for SearchLogsTool {
 
         let query = LogSearchQuery {
             level,
-            service: args.get("service").and_then(|v| v.as_str()).map(str::to_string),
-            search: args.get("search").and_then(|v| v.as_str()).map(str::to_string),
-            trace_id: args.get("trace_id").and_then(|v| v.as_str()).map(str::to_string),
+            service: args
+                .get("service")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
+            search: args
+                .get("search")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
+            trace_id: args
+                .get("trace_id")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
             limit: args.get("limit").and_then(|v| v.as_i64()).unwrap_or(20),
             offset: 0,
         };
@@ -107,7 +116,10 @@ impl AiTool for SearchMetricsTool {
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let name = args.get("name").and_then(|v| v.as_str()).map(str::to_string);
+        let name = args
+            .get("name")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
 
         let events = crate::events::application::EventBus::new();
         let service = MetricService::new(&self.pool, &events);
@@ -193,7 +205,10 @@ impl AiTool for SearchTracesTool {
             .map_err(|e: crate::AppError| ToolError::InvalidArguments(e.to_string()))?;
 
         let query = TraceQuery {
-            service: args.get("service").and_then(|v| v.as_str()).map(str::to_string),
+            service: args
+                .get("service")
+                .and_then(|v| v.as_str())
+                .map(str::to_string),
             status,
             since: None,
             limit: args.get("limit").and_then(|v| v.as_i64()).unwrap_or(10),
@@ -243,7 +258,11 @@ impl AiTool for SearchDeploymentsTool {
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args.get("limit").and_then(|v| v.as_i64()).unwrap_or(10).clamp(1, 50);
+        let limit = args
+            .get("limit")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(10)
+            .clamp(1, 50);
         let environment = args.get("environment").and_then(|v| v.as_str());
 
         let rows = sqlx::query_as::<_, DeploymentRow>(
@@ -310,7 +329,11 @@ impl AiTool for SearchNetworkTool {
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args.get("limit").and_then(|v| v.as_i64()).unwrap_or(20).clamp(1, 100);
+        let limit = args
+            .get("limit")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(20)
+            .clamp(1, 100);
 
         let rows = sqlx::query_as::<_, NetworkRow>(
             r#"
@@ -481,8 +504,15 @@ impl AiTool for SearchSecurityTool {
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args.get("limit").and_then(|v| v.as_i64()).unwrap_or(20).clamp(1, 100);
-        let severity = args.get("severity").and_then(|v| v.as_str()).map(str::to_string);
+        let limit = args
+            .get("limit")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(20)
+            .clamp(1, 100);
+        let severity = args
+            .get("severity")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
 
         let rows = sqlx::query_as::<_, SecurityFindingRow>(
             r#"
@@ -539,8 +569,15 @@ impl AiTool for SearchIncidentsTool {
     }
 
     async fn execute(&self, args: Value) -> Result<String, ToolError> {
-        let limit = args.get("limit").and_then(|v| v.as_i64()).unwrap_or(10).clamp(1, 50);
-        let status = args.get("status").and_then(|v| v.as_str()).map(str::to_string);
+        let limit = args
+            .get("limit")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(10)
+            .clamp(1, 50);
+        let status = args
+            .get("status")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
 
         let rows = sqlx::query_as::<_, IncidentToolRow>(
             r#"

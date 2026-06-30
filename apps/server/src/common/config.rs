@@ -106,10 +106,13 @@ impl AppConfig {
                 .map_err(|e| anyhow::anyhow!("Invalid SERVER_PORT: {e}"))?,
             environment,
             run_migrations,
-            ai_default_provider: env::var("AI_DEFAULT_PROVIDER").unwrap_or_else(|_| "gemini".into()),
+            ai_default_provider: env::var("AI_DEFAULT_PROVIDER")
+                .unwrap_or_else(|_| "gemini".into()),
             gemini_api_key: env::var("GEMINI_API_KEY").ok().filter(|k| !k.is_empty()),
             groq_api_key: env::var("GROQ_API_KEY").ok().filter(|k| !k.is_empty()),
-            openrouter_api_key: env::var("OPENROUTER_API_KEY").ok().filter(|k| !k.is_empty()),
+            openrouter_api_key: env::var("OPENROUTER_API_KEY")
+                .ok()
+                .filter(|k| !k.is_empty()),
             ollama_base_url: env::var("OLLAMA_BASE_URL")
                 .unwrap_or_else(|_| "http://localhost:11434".into()),
             jina_api_key: env::var("JINA_API_KEY").ok().filter(|k| !k.is_empty()),
@@ -151,7 +154,10 @@ impl AppConfig {
         }
 
         if self.database_url == DEFAULT_DATABASE_URL {
-            anyhow::bail!("DATABASE_URL must be set to a production database in {}", self.environment);
+            anyhow::bail!(
+                "DATABASE_URL must be set to a production database in {}",
+                self.environment
+            );
         }
 
         if self.cors_allowed_origins.is_empty() {

@@ -28,6 +28,7 @@ impl<'a> ChatService<'a> {
         project_id: Uuid,
         user_id: Uuid,
         request: ChatCompletionRequest,
+        vector: Option<std::sync::Arc<crate::vector::application::VectorService>>,
     ) -> Result<ChatCompletionResponse, AppError> {
         if request.message.trim().is_empty() {
             return Err(AppError::Validation("Message cannot be empty".into()));
@@ -38,16 +39,17 @@ impl<'a> ChatService<'a> {
                 self.ensure_conversation(id, project_id, user_id).await?;
                 id
             }
-            None => self.create_conversation(project_id, user_id, &request.message).await?,
+            None => {
+                self.create_conversation(project_id, user_id, &request.message)
+                    .await?
+            }
         };
 
         let history = self.load_history(conversation_id).await?;
-        let tools = ToolRegistry::for_project(project_id, self.db.clone());
+        let tools = ToolRegistry::for_project(project_id, self.db.clone(), vector);
         let orchestrator = AiOrchestrator::new(self.provider.clone());
 
-        let mut messages = vec![ChatMessage::system(observability_system_prompt(
-            project_id,
-        ))];
+        let mut messages = vec![ChatMessage::system(observability_system_prompt(project_id))];
         messages.extend(history);
         messages.push(ChatMessage::user(&request.message));
 
@@ -140,7 +142,10 @@ impl<'a> ChatService<'a> {
         .fetch_all(self.db)
         .await?;
 
-        Ok(rows.into_iter().map(|row| row.into_chat_message()).collect())
+        Ok(rows
+            .into_iter()
+            .map(|row| row.into_chat_message())
+            .collect())
     }
 
     async fn save_message(
@@ -218,7 +223,9 @@ fn truncate_title(message: &str) -> String {
 
 fn map_llm_error(error: LlmError) -> AppError {
     match error {
-        LlmError::NotConfigured(message) => AppError::Internal(format!("AI not configured: {message}")),
+        LlmError::NotConfigured(message) => {
+            AppError::Internal(format!("AI not configured: {message}"))
+        }
         LlmError::RateLimited => AppError::External("AI provider rate limit exceeded".into()),
         LlmError::RequestFailed(message) | LlmError::InvalidResponse(message) => {
             AppError::AiProvider(message)

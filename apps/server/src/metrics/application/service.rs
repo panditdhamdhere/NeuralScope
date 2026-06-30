@@ -39,7 +39,9 @@ impl<'a> MetricService<'a> {
         requests: Vec<IngestMetricRequest>,
     ) -> Result<Vec<MetricPoint>, AppError> {
         if requests.is_empty() {
-            return Err(AppError::Validation("At least one metric is required".into()));
+            return Err(AppError::Validation(
+                "At least one metric is required".into(),
+            ));
         }
 
         if requests.len() > 5000 {

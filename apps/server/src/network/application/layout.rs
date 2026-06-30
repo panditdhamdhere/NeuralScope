@@ -5,10 +5,7 @@ pub fn layout_graph(nodes: &mut [GraphNode]) {
     let mut tiers: std::collections::HashMap<i32, Vec<usize>> = std::collections::HashMap::new();
 
     for (index, node) in nodes.iter().enumerate() {
-        let tier = node
-            .node_type
-            .unwrap_or(NodeType::Unknown)
-            .layout_tier();
+        let tier = node.node_type.unwrap_or(NodeType::Unknown).layout_tier();
         tiers.entry(tier).or_default().push(index);
     }
 

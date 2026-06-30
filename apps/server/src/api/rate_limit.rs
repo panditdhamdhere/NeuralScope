@@ -66,11 +66,7 @@ fn client_key(request: &Request) -> String {
 }
 
 /// Axum middleware that enforces per-IP request limits.
-pub async fn rate_limit_middleware(
-    limiter: RateLimiter,
-    request: Request,
-    next: Next,
-) -> Response {
+pub async fn rate_limit_middleware(limiter: RateLimiter, request: Request, next: Next) -> Response {
     if !limiter.allow(&client_key(&request)) {
         return (
             StatusCode::TOO_MANY_REQUESTS,

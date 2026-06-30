@@ -116,9 +116,7 @@ impl<'a> AuthService<'a> {
             return Err(AppError::Unauthorized("Invalid email or password".into()));
         }
 
-        let session = self
-            .create_session(row.id, ip_address, user_agent)
-            .await?;
+        let session = self.create_session(row.id, ip_address, user_agent).await?;
 
         Ok((row.into_user(), session))
     }

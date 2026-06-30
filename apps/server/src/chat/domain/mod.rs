@@ -5,9 +5,7 @@ use uuid::Uuid;
 
 use crate::ai::domain::{ChatMessage, MessageRole};
 
-pub use dto::{
-    ChatCompletionRequest, ChatCompletionResponse, ConversationSummary, MessageRecord,
-};
+pub use dto::{ChatCompletionRequest, ChatCompletionResponse, ConversationSummary, MessageRecord};
 
 /// A chat conversation thread.
 #[derive(Debug, Clone)]

@@ -4,9 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub use graph::{
-    GraphEdge, GraphEdgeData, GraphNode, GraphNodeData, GraphPosition, GraphResponse,
-};
+pub use graph::{GraphEdge, GraphEdgeData, GraphNode, GraphNodeData, GraphPosition, GraphResponse};
 
 /// A network connection event between two endpoints.
 #[derive(Debug, Clone, Serialize, Deserialize)]

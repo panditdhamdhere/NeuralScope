@@ -189,9 +189,6 @@ mod tests {
                 .unwrap(),
         );
 
-        assert_eq!(
-            extract_session_cookie(&headers).as_deref(),
-            Some("abc123")
-        );
+        assert_eq!(extract_session_cookie(&headers).as_deref(), Some("abc123"));
     }
 }

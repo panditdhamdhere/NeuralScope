@@ -39,7 +39,9 @@ impl<'a> LogService<'a> {
         requests: Vec<IngestLogRequest>,
     ) -> Result<Vec<LogEntry>, AppError> {
         if requests.is_empty() {
-            return Err(AppError::Validation("At least one log entry is required".into()));
+            return Err(AppError::Validation(
+                "At least one log entry is required".into(),
+            ));
         }
 
         if requests.len() > 1000 {

@@ -44,9 +44,11 @@ impl AppError {
             Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             Self::Forbidden(_) => StatusCode::FORBIDDEN,
             Self::Validation(_) => StatusCode::BAD_REQUEST,
-            Self::Config(_) | Self::Internal(_) | Self::Database(_) | Self::AiProvider(_) | Self::External(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            Self::Config(_)
+            | Self::Internal(_)
+            | Self::Database(_)
+            | Self::AiProvider(_)
+            | Self::External(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

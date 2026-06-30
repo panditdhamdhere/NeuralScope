@@ -1,6 +1,7 @@
 //! Tool registry — defines and executes AI tools against observability data sources.
 
 mod observability;
+mod rag;
 
 use std::sync::Arc;
 
@@ -10,11 +11,13 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::ai::domain::ToolDefinition;
+use crate::vector::application::VectorService;
 
 pub use observability::{
     SearchArchitectureTool, SearchDeploymentsTool, SearchIncidentsTool, SearchLogsTool,
     SearchMetricsTool, SearchNetworkTool, SearchSecurityTool, SearchTracesTool,
 };
+pub use rag::{SearchCodebaseTool, SearchDocsTool};
 
 /// Errors during tool execution.
 #[derive(Debug, thiserror::Error)]
@@ -52,16 +55,31 @@ pub struct ToolRegistry {
 impl ToolRegistry {
     /// Creates a registry with all observability tools for the given project.
     #[must_use]
-    pub fn for_project(project_id: Uuid, pool: PgPool) -> Self {
+    pub fn for_project(project_id: Uuid, pool: PgPool, vector: Option<Arc<VectorService>>) -> Self {
         let mut registry = Self { tools: Vec::new() };
         registry.register(Arc::new(SearchLogsTool::new(pool.clone(), project_id)));
         registry.register(Arc::new(SearchMetricsTool::new(pool.clone(), project_id)));
         registry.register(Arc::new(SearchTracesTool::new(pool.clone(), project_id)));
-        registry.register(Arc::new(SearchDeploymentsTool::new(pool.clone(), project_id)));
+        registry.register(Arc::new(SearchDeploymentsTool::new(
+            pool.clone(),
+            project_id,
+        )));
         registry.register(Arc::new(SearchNetworkTool::new(pool.clone(), project_id)));
-        registry.register(Arc::new(SearchArchitectureTool::new(pool.clone(), project_id)));
+        registry.register(Arc::new(SearchArchitectureTool::new(
+            pool.clone(),
+            project_id,
+        )));
         registry.register(Arc::new(SearchSecurityTool::new(pool.clone(), project_id)));
-        registry.register(Arc::new(SearchIncidentsTool::new(pool, project_id)));
+        registry.register(Arc::new(SearchIncidentsTool::new(pool.clone(), project_id)));
+
+        if let Some(vector) = vector {
+            registry.register(Arc::new(SearchCodebaseTool::new(
+                vector.clone(),
+                project_id,
+            )));
+            registry.register(Arc::new(SearchDocsTool::new(vector, project_id)));
+        }
+
         registry
     }
 

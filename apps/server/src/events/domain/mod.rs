@@ -15,27 +15,21 @@ pub enum Event {
     #[serde(rename = "metric.sample")]
     MetricSample { name: String, value: f64 },
     #[serde(rename = "trace.complete")]
-    TraceComplete {
-        trace_id: String,
-        duration_ms: f64,
-    },
+    TraceComplete { trace_id: String, duration_ms: f64 },
     #[serde(rename = "network.connection")]
-    NetworkConnection {
-        source: String,
-        destination: String,
-    },
+    NetworkConnection { source: String, destination: String },
     #[serde(rename = "incident.created")]
-    IncidentCreated {
-        incident_id: Uuid,
-        severity: String,
-    },
+    IncidentCreated { incident_id: Uuid, severity: String },
     #[serde(rename = "security.finding")]
     SecurityFinding {
         finding_id: Uuid,
         severity: String,
         title: String,
     },
-    DeploymentDetected { commit_sha: String, environment: String },
+    DeploymentDetected {
+        commit_sha: String,
+        environment: String,
+    },
 }
 
 /// Envelope wrapping an event with metadata.

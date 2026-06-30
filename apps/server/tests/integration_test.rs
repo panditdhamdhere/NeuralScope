@@ -7,8 +7,17 @@ const API_KEY: HeaderName = HeaderName::from_static("x-api-key");
 
 async fn test_state() -> AppState {
     let config = AppConfig::from_env().expect("config");
-    let bundle = db::connect(&config).await.expect("connect to infrastructure");
-    AppState::new(config, bundle.pool, bundle.redis, EventBus::new(), None)
+    let bundle = db::connect(&config)
+        .await
+        .expect("connect to infrastructure");
+    AppState::new(
+        config,
+        bundle.pool,
+        bundle.redis,
+        EventBus::new(),
+        None,
+        None,
+    )
 }
 
 #[tokio::test]
@@ -227,7 +236,9 @@ async fn log_ingestion_and_search() {
     assert_eq!(log["level"], "error");
 
     let search = server
-        .get(&format!("/api/v1/projects/{project_id}/logs?search=database"))
+        .get(&format!(
+            "/api/v1/projects/{project_id}/logs?search=database"
+        ))
         .add_header(COOKIE, cookie)
         .await;
 
@@ -285,7 +296,9 @@ async fn metrics_and_traces_ingestion() {
     metric.assert_status(StatusCode::CREATED);
 
     let metrics = server
-        .get(&format!("/api/v1/projects/{project_id}/metrics?name=cpu.usage"))
+        .get(&format!(
+            "/api/v1/projects/{project_id}/metrics?name=cpu.usage"
+        ))
         .add_header(COOKIE, cookie)
         .await;
 

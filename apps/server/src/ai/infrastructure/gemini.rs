@@ -80,7 +80,9 @@ impl LlmProvider for GeminiProvider {
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            return Err(LlmError::RequestFailed(format!("Gemini API {status}: {text}")));
+            return Err(LlmError::RequestFailed(format!(
+                "Gemini API {status}: {text}"
+            )));
         }
 
         let gemini: GeminiResponse = response
@@ -234,9 +236,15 @@ struct GeminiContent {
 #[derive(Serialize, Deserialize)]
 #[serde(untagged)]
 enum GeminiPart {
-    Text { text: String },
-    FunctionCall { function_call: GeminiFunctionCall },
-    FunctionResponse { function_response: GeminiFunctionResponse },
+    Text {
+        text: String,
+    },
+    FunctionCall {
+        function_call: GeminiFunctionCall,
+    },
+    FunctionResponse {
+        function_response: GeminiFunctionResponse,
+    },
 }
 
 #[derive(Serialize, Deserialize)]

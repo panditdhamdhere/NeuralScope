@@ -105,12 +105,7 @@ pub async fn login(
 
     let auth = AuthService::new(&state.db);
     let (user, session) = auth
-        .login(
-            &body.email,
-            &body.password,
-            ip.as_deref(),
-            user_agent,
-        )
+        .login(&body.email, &body.password, ip.as_deref(), user_agent)
         .await?;
 
     Ok(session_response(
@@ -208,7 +203,10 @@ pub async fn create_api_key(
 
     Ok((
         StatusCode::CREATED,
-        Json(ApiKeyCreatedResponse { api_key, key: raw_key }),
+        Json(ApiKeyCreatedResponse {
+            api_key,
+            key: raw_key,
+        }),
     ))
 }
 
@@ -232,7 +230,11 @@ fn session_response<T: Serialize>(
     status: StatusCode,
 ) -> Response {
     let max_age = (expires_at - Utc::now()).num_seconds().max(0);
-    let secure = if state.config.is_production() { "; Secure" } else { "" };
+    let secure = if state.config.is_production() {
+        "; Secure"
+    } else {
+        ""
+    };
 
     let cookie = format!(
         "{SESSION_COOKIE}={token}; HttpOnly; Path=/; SameSite=Lax; Max-Age={max_age}{secure}"

@@ -329,7 +329,7 @@ flowchart TB
 | **M9** ✅ | Security scanner + incident reports |
 | **M10** ✅ | Dashboard polish, CI/CD, K8s manifests |
 | **M11** ✅ | Production hardening: CORS, rate limits, RBAC, auth middleware |
-| **M12** | RAG pipeline + Qdrant integration |
+| **M12** ✅ | RAG pipeline + Qdrant vector indexing and semantic search |
 | **M13** | Git history integration |
 | **M14** | MCP server exposure |
 | **M15** | E2E tests in CI |

@@ -1,6 +1,9 @@
 use std::net::SocketAddr;
 
-use neuralscope_server::{ai::infrastructure::create_llm_provider, api, db, events::application::EventBus, AppConfig};
+use neuralscope_server::{
+    ai::infrastructure::create_llm_provider, api, db, events::application::EventBus, vector,
+    AppConfig,
+};
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -59,7 +62,28 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let state = api::AppState::new(config, bundle.pool, bundle.redis, events, ai_provider);
+    let embedding_provider = vector::infrastructure::create_embedding_provider(&config);
+    let vector_service = std::sync::Arc::new(vector::application::VectorService::from_parts(
+        embedding_provider,
+        &config.qdrant_url,
+        bundle.pool.clone(),
+    ));
+
+    match vector_service.health_check().await {
+        Ok(()) => info!(url = %config.qdrant_url, "Qdrant vector store connected"),
+        Err(error) => {
+            tracing::warn!(%error, url = %config.qdrant_url, "Qdrant unavailable — vector search may fail");
+        }
+    }
+
+    let state = api::AppState::new(
+        config,
+        bundle.pool,
+        bundle.redis,
+        events,
+        ai_provider,
+        Some(vector_service),
+    );
     let app = api::create_router(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

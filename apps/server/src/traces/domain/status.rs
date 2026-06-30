@@ -40,7 +40,9 @@ impl FromStr for TraceStatus {
             "ok" => Ok(Self::Ok),
             "error" => Ok(Self::Error),
             "unset" => Ok(Self::Unset),
-            other => Err(AppError::Validation(format!("Invalid trace status: {other}"))),
+            other => Err(AppError::Validation(format!(
+                "Invalid trace status: {other}"
+            ))),
         }
     }
 }

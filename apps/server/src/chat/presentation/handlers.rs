@@ -47,7 +47,7 @@ pub async fn chat_completion(
         .clone();
 
     let response = ChatService::new(&state.db, provider)
-        .complete(project_id, auth.user.id, body)
+        .complete(project_id, auth.user.id, body, state.vector.clone())
         .await?;
 
     Ok((StatusCode::OK, Json(response)))
@@ -61,8 +61,7 @@ pub async fn get_conversations(
 ) -> Result<Json<ListResponse<ConversationSummary>>, AppError> {
     ensure_project_member(&state.db, auth.user.id, project_id).await?;
 
-    let conversations =
-        list_conversations(&state.db, project_id, auth.user.id).await?;
+    let conversations = list_conversations(&state.db, project_id, auth.user.id).await?;
     let total = conversations.len();
 
     Ok(Json(ListResponse {
@@ -79,8 +78,7 @@ pub async fn get_messages(
 ) -> Result<Json<ListResponse<MessageRecord>>, AppError> {
     ensure_project_member(&state.db, auth.user.id, project_id).await?;
 
-    let messages =
-        list_messages(&state.db, project_id, auth.user.id, conversation_id).await?;
+    let messages = list_messages(&state.db, project_id, auth.user.id, conversation_id).await?;
     let total = messages.len();
 
     Ok(Json(ListResponse {

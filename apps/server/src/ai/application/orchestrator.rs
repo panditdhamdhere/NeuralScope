@@ -71,7 +71,10 @@ impl AiOrchestrator {
                 tool_calls_made += 1;
                 debug!(tool = %tool_call.name, "Executing AI tool");
 
-                let result = match tools.execute(&tool_call.name, tool_call.arguments.clone()).await {
+                let result = match tools
+                    .execute(&tool_call.name, tool_call.arguments.clone())
+                    .await
+                {
                     Ok(content) => content,
                     Err(error) => {
                         warn!(tool = %tool_call.name, %error, "Tool execution failed");
@@ -126,8 +129,8 @@ fn assistant_message_with_tools(response: &CompletionResponse) -> ChatMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use crate::ai::domain::{CompletionRequest, ToolCall};
+    use async_trait::async_trait;
 
     struct MockProvider {
         responses: std::sync::Mutex<Vec<CompletionResponse>>,
@@ -143,7 +146,10 @@ mod tests {
 
     #[async_trait]
     impl LlmProvider for MockProvider {
-        async fn complete(&self, _request: CompletionRequest) -> Result<CompletionResponse, LlmError> {
+        async fn complete(
+            &self,
+            _request: CompletionRequest,
+        ) -> Result<CompletionResponse, LlmError> {
             let mut guard = self.responses.lock().expect("lock");
             if guard.is_empty() {
                 return Ok(CompletionResponse {
@@ -185,7 +191,7 @@ mod tests {
 
         let pool = sqlx::PgPool::connect_lazy("postgres://localhost/test").expect("pool");
         let project_id = uuid::Uuid::new_v4();
-        let tools = ToolRegistry::for_project(project_id, pool);
+        let tools = ToolRegistry::for_project(project_id, pool, None);
         let orchestrator = AiOrchestrator::new(provider);
 
         let result = orchestrator

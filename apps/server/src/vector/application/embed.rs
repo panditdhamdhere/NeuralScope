@@ -2,7 +2,9 @@
 
 use std::sync::Arc;
 
-use crate::vector::domain::{EmbeddingError, EmbeddingProvider, EmbeddingRequest, EmbeddingResponse};
+use crate::vector::domain::{
+    EmbeddingError, EmbeddingProvider, EmbeddingRequest, EmbeddingResponse,
+};
 
 /// Generates vector embeddings for text content.
 pub struct EmbeddingService {
@@ -16,7 +18,10 @@ impl EmbeddingService {
     }
 
     /// Embeds one or more text strings.
-    pub async fn embed(&self, request: EmbeddingRequest) -> Result<EmbeddingResponse, EmbeddingError> {
+    pub async fn embed(
+        &self,
+        request: EmbeddingRequest,
+    ) -> Result<EmbeddingResponse, EmbeddingError> {
         if request.texts.is_empty() {
             return Err(EmbeddingError::InvalidInput(
                 "At least one text is required".into(),

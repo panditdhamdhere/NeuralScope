@@ -45,7 +45,9 @@ impl FromStr for MetricUnit {
             "bytes" => Ok(Self::Bytes),
             "milliseconds" | "ms" => Ok(Self::Milliseconds),
             "requests_per_second" | "rps" => Ok(Self::RequestsPerSecond),
-            other => Err(AppError::Validation(format!("Invalid metric unit: {other}"))),
+            other => Err(AppError::Validation(format!(
+                "Invalid metric unit: {other}"
+            ))),
         }
     }
 }

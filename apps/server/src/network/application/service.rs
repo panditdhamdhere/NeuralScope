@@ -44,7 +44,9 @@ impl<'a> NetworkService<'a> {
         requests: Vec<IngestNetworkEventRequest>,
     ) -> Result<Vec<NetworkEvent>, AppError> {
         if requests.is_empty() {
-            return Err(AppError::Validation("At least one network event is required".into()));
+            return Err(AppError::Validation(
+                "At least one network event is required".into(),
+            ));
         }
 
         if requests.len() > 1000 {
@@ -93,18 +95,8 @@ impl<'a> NetworkService<'a> {
             "#,
         )
         .bind(project_id)
-        .bind(
-            query
-                .source
-                .as_ref()
-                .map(|value| format!("%{value}%")),
-        )
-        .bind(
-            query
-                .destination
-                .as_ref()
-                .map(|value| format!("%{value}%")),
-        )
+        .bind(query.source.as_ref().map(|value| format!("%{value}%")))
+        .bind(query.destination.as_ref().map(|value| format!("%{value}%")))
         .bind(query.since)
         .bind(query.until)
         .bind(limit)

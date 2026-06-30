@@ -18,11 +18,7 @@ impl<'a> ProjectService<'a> {
     }
 
     /// Creates a project and assigns the creator as owner.
-    pub async fn create(
-        &self,
-        user_id: Uuid,
-        name: &str,
-    ) -> Result<Project, AppError> {
+    pub async fn create(&self, user_id: Uuid, name: &str) -> Result<Project, AppError> {
         if name.trim().is_empty() {
             return Err(AppError::Validation("Project name is required".into()));
         }
@@ -131,10 +127,11 @@ impl<'a> ProjectService<'a> {
         let mut suffix = 0;
 
         loop {
-            let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM projects WHERE slug = $1)")
-                .bind(&slug)
-                .fetch_one(self.pool)
-                .await?;
+            let exists: bool =
+                sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM projects WHERE slug = $1)")
+                    .bind(&slug)
+                    .fetch_one(self.pool)
+                    .await?;
 
             if !exists {
                 return Ok(slug);

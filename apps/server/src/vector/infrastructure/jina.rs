@@ -2,7 +2,9 @@
 
 use async_trait::async_trait;
 
-use crate::vector::domain::{EmbeddingError, EmbeddingProvider, EmbeddingRequest, EmbeddingResponse};
+use crate::vector::domain::{
+    EmbeddingError, EmbeddingProvider, EmbeddingRequest, EmbeddingResponse,
+};
 
 /// Jina AI embeddings via the v1 API.
 pub struct JinaEmbeddingProvider {

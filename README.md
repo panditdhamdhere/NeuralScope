@@ -125,6 +125,9 @@ The server starts on `http://localhost:8080`:
 | `GET /api/v1/projects/:id/incidents` | List incident reports |
 | `POST /api/v1/projects/:id/incidents/generate` | Generate incident report from telemetry |
 | `GET /api/v1/projects/:id/overview` | Dashboard aggregates (24h counts, recent logs, metrics) |
+| `POST /api/v1/projects/:id/vectors/index` | Index code/docs for semantic search (RAG) |
+| `POST /api/v1/projects/:id/vectors/search` | Semantic vector search |
+| `GET /api/v1/projects/:id/vectors/status` | Embedding provider + Qdrant status |
 
 Set `GEMINI_API_KEY` (or `GROQ_API_KEY` / `OPENROUTER_API_KEY` with `AI_DEFAULT_PROVIDER`) to enable chat.
 

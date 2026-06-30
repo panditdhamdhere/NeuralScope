@@ -87,7 +87,9 @@ impl<'a> ArchitectureService<'a> {
                     id: row.id.to_string(),
                     source,
                     target,
-                    label: row.avg_latency_ms.map(|latency| format!("{latency:.0}ms avg")),
+                    label: row
+                        .avg_latency_ms
+                        .map(|latency| format!("{latency:.0}ms avg")),
                     data: GraphEdgeData {
                         protocol: row.protocol.unwrap_or_else(|| "http".into()),
                         event_count: row.request_count.max(0) as u64,
@@ -173,17 +175,19 @@ impl<'a> ArchitectureService<'a> {
 
         let mut nodes: Vec<GraphNode> = node_map
             .into_iter()
-            .map(|(name, (service_type, event_count, total_bytes))| GraphNode {
-                id: node_key(&name),
-                label: name,
-                node_type: None,
-                service_type: Some(service_type.as_str().to_string()),
-                position: Default::default(),
-                data: GraphNodeData {
-                    event_count,
-                    total_bytes,
+            .map(
+                |(name, (service_type, event_count, total_bytes))| GraphNode {
+                    id: node_key(&name),
+                    label: name,
+                    node_type: None,
+                    service_type: Some(service_type.as_str().to_string()),
+                    position: Default::default(),
+                    data: GraphNodeData {
+                        event_count,
+                        total_bytes,
+                    },
                 },
-            })
+            )
             .collect();
 
         layout_architecture(&mut nodes);

@@ -132,8 +132,7 @@ fn readiness_response(checks: DependencyChecks) -> Response {
 }
 
 async fn run_dependency_checks(db: &PgPool, redis: &ConnectionManager) -> DependencyChecks {
-    let (database, redis_check) =
-        tokio::join!(check_database(db), check_redis(redis));
+    let (database, redis_check) = tokio::join!(check_database(db), check_redis(redis));
 
     DependencyChecks {
         database,

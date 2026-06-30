@@ -9,8 +9,8 @@ use crate::AppError;
 ///
 /// Returns an error if Redis is unreachable.
 pub async fn create_redis(redis_url: &str) -> Result<ConnectionManager, AppError> {
-    let client = Client::open(redis_url)
-        .map_err(|e| AppError::Config(format!("Invalid REDIS_URL: {e}")))?;
+    let client =
+        Client::open(redis_url).map_err(|e| AppError::Config(format!("Invalid REDIS_URL: {e}")))?;
 
     ConnectionManager::new(client)
         .await

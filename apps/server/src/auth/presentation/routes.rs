@@ -13,7 +13,10 @@ pub fn routes(state: &AppState) -> Router<AppState> {
     let mut router = Router::new()
         .route("/auth/logout", post(handlers::logout))
         .route("/auth/me", get(handlers::me))
-        .route("/projects", get(handlers::list_projects).post(handlers::create_project))
+        .route(
+            "/projects",
+            get(handlers::list_projects).post(handlers::create_project),
+        )
         .route("/projects/{slug}", get(handlers::get_project))
         .route(
             "/api-keys",

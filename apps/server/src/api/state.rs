@@ -7,6 +7,7 @@ use sqlx::PgPool;
 use crate::ai::domain::LlmProvider;
 use crate::common::config::AppConfig;
 use crate::events::application::EventBus;
+use crate::vector::application::VectorService;
 
 /// Shared application state injected into all HTTP handlers.
 #[derive(Clone)]
@@ -16,6 +17,7 @@ pub struct AppState {
     pub redis: ConnectionManager,
     pub events: EventBus,
     pub ai_provider: Option<Arc<dyn LlmProvider>>,
+    pub vector: Option<Arc<VectorService>>,
     pub start_time: Instant,
 }
 
@@ -27,6 +29,7 @@ impl AppState {
         redis: ConnectionManager,
         events: EventBus,
         ai_provider: Option<Arc<dyn LlmProvider>>,
+        vector: Option<Arc<VectorService>>,
     ) -> Self {
         Self {
             config,
@@ -34,6 +37,7 @@ impl AppState {
             redis,
             events,
             ai_provider,
+            vector,
             start_time: Instant::now(),
         }
     }

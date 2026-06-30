@@ -1,9 +1,4 @@
-use axum::{
-    extract::DefaultBodyLimit,
-    middleware::from_fn,
-    routing::get,
-    Router,
-};
+use axum::{extract::DefaultBodyLimit, middleware::from_fn, routing::get, Router};
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;
 
@@ -19,6 +14,7 @@ use crate::network::presentation::network_routes;
 use crate::overview::presentation::overview_routes;
 use crate::security::presentation::security_routes;
 use crate::traces::presentation::trace_routes;
+use crate::vector::presentation::routes as vector_routes;
 
 /// Builds the root Axum router with middleware and route modules.
 #[must_use]
@@ -55,4 +51,5 @@ fn v1_routes(state: &AppState) -> Router<AppState> {
         .merge(security_routes())
         .merge(incident_routes())
         .merge(overview_routes())
+        .merge(vector_routes())
 }
