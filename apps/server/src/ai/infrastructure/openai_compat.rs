@@ -3,6 +3,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::time::Duration;
 
 use crate::ai::domain::{
     ChatMessage, CompletionRequest, CompletionResponse, LlmError, LlmProvider, MessageRole,
@@ -35,12 +36,12 @@ impl OpenAiCompatibleProvider {
         }
     }
 
-    pub fn groq(api_key: impl Into<String>) -> Self {
+    pub fn groq(api_key: impl Into<String>, model: impl Into<String>) -> Self {
         Self::new(
             "groq",
             "https://api.groq.com/openai/v1",
             Some(api_key.into()),
-            "llama-3.3-70b-versatile",
+            model,
         )
     }
 
@@ -57,6 +58,9 @@ impl OpenAiCompatibleProvider {
         Self::new("ollama", base_url, None, "llama3.2")
     }
 }
+
+const GROQ_RATE_LIMIT_RETRIES: u32 = 3;
+const GROQ_RETRY_BASE_MS: u64 = 2_000;
 
 #[async_trait]
 impl LlmProvider for OpenAiCompatibleProvider {
@@ -82,36 +86,46 @@ impl LlmProvider for OpenAiCompatibleProvider {
         };
 
         let url = format!("{}/chat/completions", self.base_url);
-        let mut req = self.client.post(&url).json(&body);
 
-        if let Some(key) = &self.api_key {
-            req = req.bearer_auth(key);
+        for attempt in 0..GROQ_RATE_LIMIT_RETRIES {
+            let mut req = self.client.post(&url).json(&body);
+
+            if let Some(key) = &self.api_key {
+                req = req.bearer_auth(key);
+            }
+
+            let response = req
+                .send()
+                .await
+                .map_err(|e| LlmError::RequestFailed(e.to_string()))?;
+
+            if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
+                if attempt + 1 < GROQ_RATE_LIMIT_RETRIES && self.name == "groq" {
+                    let delay = GROQ_RETRY_BASE_MS * (1 << attempt);
+                    tokio::time::sleep(Duration::from_millis(delay)).await;
+                    continue;
+                }
+                return Err(LlmError::RateLimited);
+            }
+
+            if !response.status().is_success() {
+                let status = response.status();
+                let text = response.text().await.unwrap_or_default();
+                return Err(LlmError::RequestFailed(format!(
+                    "{} API {status}: {text}",
+                    self.name
+                )));
+            }
+
+            let openai: OpenAiResponse = response
+                .json()
+                .await
+                .map_err(|e| LlmError::InvalidResponse(e.to_string()))?;
+
+            return parse_openai_response(openai);
         }
 
-        let response = req
-            .send()
-            .await
-            .map_err(|e| LlmError::RequestFailed(e.to_string()))?;
-
-        if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
-            return Err(LlmError::RateLimited);
-        }
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let text = response.text().await.unwrap_or_default();
-            return Err(LlmError::RequestFailed(format!(
-                "{} API {status}: {text}",
-                self.name
-            )));
-        }
-
-        let openai: OpenAiResponse = response
-            .json()
-            .await
-            .map_err(|e| LlmError::InvalidResponse(e.to_string()))?;
-
-        parse_openai_response(openai)
+        Err(LlmError::RateLimited)
     }
 
     fn name(&self) -> &str {

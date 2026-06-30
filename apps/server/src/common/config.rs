@@ -56,6 +56,7 @@ pub struct AppConfig {
     pub ai_default_provider: String,
     pub gemini_api_key: Option<String>,
     pub groq_api_key: Option<String>,
+    pub groq_model: String,
     pub openrouter_api_key: Option<String>,
     pub ollama_base_url: String,
     pub jina_api_key: Option<String>,
@@ -111,6 +112,8 @@ impl AppConfig {
                 .unwrap_or_else(|_| "groq".into()),
             gemini_api_key: env::var("GEMINI_API_KEY").ok().filter(|k| !k.is_empty()),
             groq_api_key: env::var("GROQ_API_KEY").ok().filter(|k| !k.is_empty()),
+            groq_model: env::var("GROQ_MODEL")
+                .unwrap_or_else(|_| "llama-3.1-8b-instant".into()),
             openrouter_api_key: env::var("OPENROUTER_API_KEY")
                 .ok()
                 .filter(|k| !k.is_empty()),
@@ -225,6 +228,7 @@ mod tests {
             ai_default_provider: "groq".into(),
             gemini_api_key: None,
             groq_api_key: None,
+            groq_model: "llama-3.1-8b-instant".into(),
             openrouter_api_key: None,
             ollama_base_url: "http://localhost:11434".into(),
             jina_api_key: None,
@@ -262,6 +266,7 @@ mod tests {
             ai_default_provider: "groq".into(),
             gemini_api_key: None,
             groq_api_key: None,
+            groq_model: "llama-3.1-8b-instant".into(),
             openrouter_api_key: None,
             ollama_base_url: "http://localhost:11434".into(),
             jina_api_key: None,

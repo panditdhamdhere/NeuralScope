@@ -19,7 +19,10 @@ pub fn create_llm_provider(config: &AppConfig) -> Result<Arc<dyn LlmProvider>, L
                 .groq_api_key
                 .clone()
                 .ok_or_else(|| LlmError::NotConfigured("GROQ_API_KEY not set".into()))?;
-            Ok(Arc::new(OpenAiCompatibleProvider::groq(api_key)))
+            Ok(Arc::new(OpenAiCompatibleProvider::groq(
+                api_key,
+                &config.groq_model,
+            )))
         }
         "openrouter" => {
             let api_key = config

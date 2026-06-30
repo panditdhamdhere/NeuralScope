@@ -226,7 +226,12 @@ fn map_llm_error(error: LlmError) -> AppError {
         LlmError::NotConfigured(message) => {
             AppError::Internal(format!("AI not configured: {message}"))
         }
-        LlmError::RateLimited => AppError::External("AI provider rate limit exceeded".into()),
+        LlmError::RateLimited => AppError::External(
+            "Groq rate limit reached — wait 60 seconds and try again. \
+             Free tier limits are lower on large models; set GROQ_MODEL=llama-3.1-8b-instant \
+             (default) or upgrade at console.groq.com."
+                .into(),
+        ),
         LlmError::RequestFailed(message) | LlmError::InvalidResponse(message) => {
             AppError::AiProvider(message)
         }
